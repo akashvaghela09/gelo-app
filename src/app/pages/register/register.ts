@@ -55,12 +55,13 @@ export class Register {
     event.preventDefault();
     const form = event.target as HTMLFormElement;
     const user = {
-      username: (form.elements.namedItem('username') as HTMLInputElement).value.trim(),
+      username: (form.elements.namedItem('username') as HTMLInputElement).value.trim().toLowerCase(), // Username will be stored in lowercase
       password: (form.elements.namedItem('password') as HTMLInputElement).value,
       name: (form.elements.namedItem('name') as HTMLInputElement).value,
       contactNumber: (form.elements.namedItem('contactNumber') as HTMLInputElement).value,
       shortBio: (form.elements.namedItem('shortBio') as HTMLInputElement).value
     };
+    // Note: Usernames are always stored in lowercase, regardless of what you enter.
     if (this.usernameAvailable === false) {
       this.error = 'Username is not available.';
       return;
