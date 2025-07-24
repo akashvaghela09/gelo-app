@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { NgIf, NgClass } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Auth } from '../../services/auth';
+import { API_URL } from '../../../constants/api';
 
 function generateRandomUsername() {
   return 'user' + Math.floor(1000000000 + Math.random() * 9000000000);
@@ -42,7 +43,7 @@ export class Register {
     if (!username) return;
     this.usernameDebounce = setTimeout(async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/auth/check-username?username=${encodeURIComponent(username)}`);
+        const res = await fetch(`${API_URL}/auth/check-username?username=${encodeURIComponent(username)}`);
         const data = await res.json();
         this.usernameAvailable = data.available;
       } catch (e) {

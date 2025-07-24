@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Auth } from '../../services/auth';
 import { NgSwitch, NgSwitchCase, NgSwitchDefault, NgIf, NgFor, NgClass, DecimalPipe } from '@angular/common';
 import { io, Socket } from 'socket.io-client';
+import { API_URL } from '../../../constants/api';
 
 @Component({
   selector: 'app-dashboard',
@@ -54,7 +55,7 @@ export class Dashboard implements OnDestroy {
     const token = this.auth.getToken();
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/users/me', {
+      const res = await fetch(`${API_URL}/users/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -83,7 +84,7 @@ export class Dashboard implements OnDestroy {
       if (this.socket) {
         this.socket.disconnect();
       }
-      this.socket = io('http://localhost:5000');
+      this.socket = io(API_URL.replace(/\/api$/, ''));
       this.socket.emit('user-info', {
         userId: this.user.id || this.user._id,
         location: this.user.location
@@ -142,7 +143,7 @@ export class Dashboard implements OnDestroy {
     const token = this.auth.getToken();
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/users', {
+      const res = await fetch(`${API_URL}/users`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

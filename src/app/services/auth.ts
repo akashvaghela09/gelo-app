@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { API_URL } from '../../constants/api';
 
 function setCookie(name: string, value: string, days = 7) {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
@@ -20,7 +21,7 @@ function deleteCookie(name: string) {
   providedIn: 'root'
 })
 export class Auth {
-  backendUrl = 'http://localhost:5000/api';
+  backendUrl = API_URL;
 
   async login(username: string, password: string) {
     const res = await fetch(`${this.backendUrl}/auth/login`, {
