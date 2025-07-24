@@ -1,25 +1,26 @@
 import { Component } from '@angular/core';
-import { NgIf } from '@angular/common';
+import { NgIf, NgClass } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Auth } from '../../services/auth';
 
-function generateUsername(name: string) {
-  const base = name.replace(/\s+/g, '').toLowerCase();
-  const rand = Math.floor(100000 + Math.random() * 900000);
-  return `${base}${rand}`;
+function generateRandomUsername() {
+  return 'user' + Math.floor(1000000000 + Math.random() * 9000000000);
 }
 
 @Component({
   selector: 'app-register',
-  imports: [NgIf, RouterModule],
+  imports: [NgIf, NgClass, RouterModule],
   templateUrl: './register.html',
   styleUrl: './register.css'
 })
 export class Register {
   error = '';
-  generatedUsername = '';
   isCheckingAuth = true;
-  private lastName = '';
+  usernameAvailable: boolean | null = null;
+  usernameFocused = false;
+  private usernameDebounce: any;
+  username = '';
+  private usernameManuallyEdited = false;
 
   constructor(private auth: Auth, private router: Router) {
     setTimeout(() => {
@@ -27,27 +28,43 @@ export class Register {
         this.router.navigate(['/dashboard']);
       } else {
         this.isCheckingAuth = false;
+        this.username = generateRandomUsername();
       }
     }, 0);
   }
 
-  onNameInput(event: Event) {
-    const name = (event.target as HTMLInputElement).value;
-    this.lastName = name;
-    this.generatedUsername = name ? generateUsername(name) : '';
+  onUsernameInput(event: Event) {
+    const username = (event.target as HTMLInputElement).value.trim();
+    this.username = username;
+    this.usernameManuallyEdited = true;
+    this.usernameAvailable = null;
+    if (this.usernameDebounce) clearTimeout(this.usernameDebounce);
+    if (!username) return;
+    this.usernameDebounce = setTimeout(async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/auth/check-username?username=${encodeURIComponent(username)}`);
+        const data = await res.json();
+        this.usernameAvailable = data.available;
+      } catch (e) {
+        this.usernameAvailable = null;
+      }
+    }, 400);
   }
 
   async onSubmit(event: Event) {
     event.preventDefault();
     const form = event.target as HTMLFormElement;
-    const name = (form.elements.namedItem('name') as HTMLInputElement).value;
     const user = {
-      username: this.generatedUsername || generateUsername(name),
+      username: (form.elements.namedItem('username') as HTMLInputElement).value.trim(),
       password: (form.elements.namedItem('password') as HTMLInputElement).value,
-      name,
+      name: (form.elements.namedItem('name') as HTMLInputElement).value,
       contactNumber: (form.elements.namedItem('contactNumber') as HTMLInputElement).value,
       shortBio: (form.elements.namedItem('shortBio') as HTMLInputElement).value
     };
+    if (this.usernameAvailable === false) {
+      this.error = 'Username is not available.';
+      return;
+    }
     try {
       await this.auth.register(user);
       this.router.navigate(['/login']);

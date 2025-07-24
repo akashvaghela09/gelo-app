@@ -1,7 +1,73 @@
-<div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-  <div class="bg-white p-8 rounded shadow-md w-full max-w-sm text-center">
-    <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
-    <p>Welcome! You are logged in.</p>
-    <button (click)="logout()" class="mt-6 w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 cursor-pointer">Logout</button>
+<div class="min-h-screen bg-gray-100 flex flex-col">
+  <!-- Navbar -->
+  <nav class="bg-white shadow p-2 flex justify-between items-center sticky top-0 z-10">
+    <span class="font-bold text-lg px-2">Gelo</span>
+    <button (click)="logout()"
+      class="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 cursor-pointer">Logout</button>
+  </nav>
+
+  <!-- User Info Section (vertical, from top) -->
+  <div class="w-full max-w-md mx-auto my-6">
+    <p class="font-semibold mb-2">My Account</p>
+    <div class="border p-4 rounded-md">
+      <div class="mb-4 flex items-center gap-2">
+        <div class="font-semibold">Username:</div>
+        <div class="text-gray-700">{{user?.username || 'Unknown'}}</div>
+      </div>
+      <div class="mb-4 flex items-center gap-2">
+        <div class="font-semibold">Location:</div>
+        <ng-container [ngSwitch]="locationStatus">
+          <div *ngSwitchCase="'found'" class="text-gray-700">Lat: {{user?.location?.lat}}, Long:
+            {{user?.location?.long}}</div>
+          <div *ngSwitchDefault class="text-gray-500">Not enabled</div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nearby User List Card -->
+  <div class="w-full max-w-md mx-auto mt-6">
+    <div class="font-semibold mb-2">Nearby Users <span class="text-gray-500">({{nearbyUsers.length}})</span>
+    </div>
+    <div *ngFor="let u of nearbyUsers" class="border rounded p-4 mb-2 bg-white flex flex-col gap-1">
+      <div class="flex items-start">
+        <div class="flex flex-col">
+          <span class="font-semibold leading-4 text-lg">{{u.name || 'Unknown'}}</span>
+          <span class="text-xs text-gray-500 leading-4">{{'@'}}{{u.username}}</span>
+        </div>
+        <span class="flex items-center ml-auto">
+          <span [ngClass]="u.online ? 'bg-green-500' : 'bg-red-500'"
+            class="inline-block w-2 h-2 rounded-full mr-1"></span>
+          <span class="text-xs" [ngClass]="u.online ? 'text-green-600' : 'text-red-600'">{{u.online ? 'Online' :
+            'Offline'}}</span>
+        </span>
+      </div>
+      <div class="flex justify-between">
+        <div class="text-gray-700 text-xs">
+          <span *ngIf="u.location?.lat && u.location?.long">
+            Lat: {{u.location?.lat | number:'1.6-6'}}, Long: {{u.location?.long | number:'1.6-6'}}
+          </span>
+          <span *ngIf="!u.location?.lat || !u.location?.long" class="text-gray-400">Location not available</span>
+        </div>
+        <div class="text-xs text-blue-700" *ngIf="u.distance !== null && u.distance !== undefined">
+          Distance: {{u.distance | number:'1.0-2'}} meters
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Permission Button & Error -->
+  <div class="mt-8 w-full max-w-md mx-auto text-center">
+    <ng-container *ngIf="isLoaded">
+      <ng-container *ngIf="locationStatus !== 'found'">
+        <button *ngIf="!isRequestingPermissions" (click)="enablePermissions()"
+          class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Enable required
+          permissions</button>
+        <span *ngIf="isRequestingPermissions" class="text-gray-500">Requesting permissions...</span>
+        <div *ngIf="locationStatus === 'denied'" class="text-red-600 mt-2">Location access denied, allow access to fetch
+          nearby users.</div>
+        <div *ngIf="errorMsg && locationStatus !== 'denied'" class="text-red-600 mt-2">{{errorMsg}}</div>
+      </ng-container>
+    </ng-container>
   </div>
 </div>
